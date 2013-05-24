@@ -1,36 +1,50 @@
 include("learner.jl")
 
-# Estimate the sampling distribution of alpha and beta
-function sampling_distribution(alpha::Real,
+function sampling_distribution(delta::Real,
+	                           alpha::Real,
 	                           beta::Real,
 	                           environment::Vector{Bernoulli},
 	                           n_trials::Integer,
 	                           n_sims::Integer)
-	n_parameters = 2
-
 	n_actions = length(environment)
-
-	estimates = Array(Float64, n_sims, n_parameters)
-
 	learner = TDLearner(alpha, beta, n_actions)
+	history = Array(Float64, n_trials, 2)
 
-	# TODO: Make this loop faster by reusing history across iterations
 	for i in 1:n_sims
-		history = simulate!(learner, environment, n_trials)
+		simulate!(learner, environment, n_trials, history)
 		alpha_hat, beta_hat = fit(history)
-		estimates[i, 1] = alpha_hat
-		estimates[i, 2] = beta_hat
+		@printf "%f,%d,%d,%f,%f,%f,%f\n" delta n_actions n_trials alpha beta alpha_hat beta_hat
 	end
 
-	return estimates
+	return
 end
 
-environment = [Bernoulli(0.1), Bernoulli(0.1), Bernoulli(0.9)]
-total_time = @elapsed estimates = sampling_distribution(0.1,
-  	                                                    1.0,
-  	                                                    environment,
-  	                                                    1_000,
-  	                                                    10_000)
-@printf "Total Time for Simulation Study: %f\n" total_time
 
-writecsv("sampling_distribution.csv", estimates)
+function run_sims(n_sims)
+	for n_actions in [2]
+		for delta in [0.2, 0.4, 0.8]
+			environment = Array(Bernoulli, n_actions)
+
+			for index in 1:n_actions
+				environment[index] = Bernoulli(0.1 + (index - 1) * delta)
+			end
+
+			for alpha in [0.1, 0.5]
+				for beta in [0.8, 1.0, 1.2]
+					for n_trials in [250, 500, 1_000, 2_000, 3_000]
+						sampling_distribution(delta,
+							                  alpha,
+							                  beta,
+							                  environment,
+						  	                  n_trials,
+						  	                  n_sims)
+					end
+				end
+			end
+		end
+	end
+
+	return
+end
+
+run_sims(2000)

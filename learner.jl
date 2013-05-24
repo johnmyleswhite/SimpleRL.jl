@@ -21,7 +21,7 @@ function TDLearner(alpha::Real, beta::Real, n_actions::Integer)
 	return learner
 end
 
-function Base.show(learner::TDLearner)
+function Base.show(io::IO, learner::TDLearner)
 	@printf "TD Learner Object\n"
 	@printf " * alpha: %f\n" learner.alpha
 	@printf " * beta: %f\n" learner.beta
@@ -33,9 +33,6 @@ function initialize!(learner::TDLearner)
 	softmax!(learner.wv, learner.probs)
 	return
 end
-
-# Record of action history
-# Action, Reward
 
 function learn!(learner::TDLearner, action::Real, reward::Real)
 	pe = reward - learner.v[action]
@@ -49,10 +46,10 @@ choose(learner::TDLearner) = rand(Categorical(learner.probs))
 
 function simulate!(learner::TDLearner,
 	               environment::Vector{Bernoulli},
-	               n_trials::Integer)
+	               n_trials::Integer,
+	               history::Matrix{Float64})
 	initialize!(learner)
 	n_actions = length(environment)
-	history = Array(Float64, n_trials, 2)
 	for t in 1:n_trials
 		action = choose(learner)
 		reward = rand(environment[action])
@@ -60,7 +57,7 @@ function simulate!(learner::TDLearner,
 		history[t, 2] = reward
 		learn!(learner, action, reward)
 	end
-	return history
+	return
 end
 
 function loglikelihood(history::Matrix, alpha::Real, beta::Real)
