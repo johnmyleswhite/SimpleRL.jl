@@ -1,4 +1,4 @@
-include("learner.jl")
+using SimpleRL
 
 function sampling_distribution(delta::Real,
 	                           alpha::Real,
@@ -12,15 +12,14 @@ function sampling_distribution(delta::Real,
 
 	for i in 1:n_sims
 		simulate!(learner, environment, n_trials, history)
-		alpha_hat, beta_hat = fit(history)
+		alpha_hat, beta_hat = fit(TDLearner, history)
 		@printf "%f,%d,%d,%f,%f,%f,%f\n" delta n_actions n_trials alpha beta alpha_hat beta_hat
 	end
 
 	return
 end
 
-
-function run_sims(n_sims)
+function run_sims(n_sims::Integer)
 	for n_actions in [2]
 		for delta in [0.2, 0.4, 0.8]
 			environment = Array(Bernoulli, n_actions)

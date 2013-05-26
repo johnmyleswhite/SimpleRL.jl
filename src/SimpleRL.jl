@@ -1,3 +1,8 @@
+module SimpleRL
+
+export TDLearner
+export simulate!, fit, loglikelihood
+
 # Need access to softmax function, RNG's and MLE routines
 using Stats
 using Distributions
@@ -73,7 +78,7 @@ function loglikelihood(history::Matrix, alpha::Real, beta::Real)
 	return ll
 end
 
-function fit(history::Matrix)
+function Distributions.fit(::Type{TDLearner}, history::Matrix)
 	n_actions = int(max(history[:, 1]))
 	function nll(pseudoparameters::Vector{Float64})
 		alpha = invlogit(pseudoparameters[1])
@@ -89,3 +94,5 @@ function fit(history::Matrix)
 	beta_hat = exp(pseudoparameters_hat[2])
 	return alpha_hat, beta_hat
 end
+
+end # module

@@ -1,4 +1,5 @@
-include("learner.jl")
+using Distributions
+using SimpleRL
 
 alpha = 0.1
 beta = 1.0
@@ -16,4 +17,4 @@ simulate!(learner, environment, n_trials, history)
 
 loglikelihood(history, alpha, beta)
 
-alpha_hat, beta_hat = fit(history)
+alpha_hat, beta_hat = fit(TDLearner, history)
